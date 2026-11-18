@@ -12,7 +12,7 @@ type Config struct {
 	AppEnv        string // dev / test / prod
 	HTTPAddr      string // 监听地址，如 :8080
 	LogLevel      string // debug / info / warn / error
-	ModelProvider string // mock / openai / ...
+	ModelProvider string // mock / openAI / ...
 	ModelAPIKey   string // 真实密钥只从环境变量读取，不落日志
 }
 
