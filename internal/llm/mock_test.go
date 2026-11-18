@@ -14,7 +14,7 @@ func TestMockProviderChat(t *testing.T) {
 	//2.构造请求
 	req := ChatRequest{
 		Model: "mock-model",
-		Message: []Message{
+		Messages: []Message{
 			{
 				Role:    RoleUser,
 				Content: "你好",

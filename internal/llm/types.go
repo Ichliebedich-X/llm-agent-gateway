@@ -19,7 +19,7 @@ type Message struct {
 // ChatRequest 表示一次模型调用请求
 type ChatRequest struct {
 	Model     string    //模型名称
-	Message   []Message //一次请求包含多条消息，[]Message 就是一个 Message 类型的切片
+	Messages  []Message //一次请求包含多条消息，[]Messages 就是一个 Messages 类型的切片
 	MaxTokens int
 }
 

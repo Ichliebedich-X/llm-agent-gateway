@@ -27,9 +27,9 @@ func (m MockProvider) Chat(
 	//获取用户最后一条消息
 	var userMessage string
 
-	for i := len(req.Message) - 1; i >= 0; i-- {
-		if req.Message[i].Role == RoleUser {
-			userMessage = req.Message[i].Content
+	for i := len(req.Messages) - 1; i >= 0; i-- {
+		if req.Messages[i].Role == RoleUser {
+			userMessage = req.Messages[i].Content
 			break
 		}
 	}
