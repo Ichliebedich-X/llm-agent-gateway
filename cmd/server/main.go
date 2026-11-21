@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"llm-agent-gateway/internal/gateway"
 	"llm-agent-gateway/internal/httpapi"
+	"llm-agent-gateway/internal/llm"
 	"log/slog"
 	"net/http"
 	"os"
@@ -42,19 +44,28 @@ func run() error {
 		"provider", cfg.ModelProvider,
 	)
 
-	//4.创建 http Server
+	// 4. 创建 Provider
+	provider := llm.MockProvider{}
+
+	// 5. 创建 Gateway，并注入 Provider
+	gw := gateway.New(provider)
+
+	// 6. 创建 Router，并注入 Gateway
+	router := httpapi.NewRouter(gw)
+
+	// 7. 创建 HTTP Server
 	server := &http.Server{
 		Addr:    cfg.HTTPAddr,
-		Handler: httpapi.NewRouter(),
+		Handler: router,
 
-		//HTTP超时配置
-		ReadHeaderTimeout: 5 * time.Second,  //读取请求头最长时间
-		ReadTimeout:       15 * time.Second, //读整个请求最长时间
-		WriteTimeout:      30 * time.Second, //响应写入最长时间（以后实现 SSE 时重新评估）
-		IdleTimeout:       60 * time.Second, //两次请求之间，保持空闲连接的最长时间
+		// HTTP 超时配置
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
 	}
 
-	//5.监听退出信号
+	//8.监听退出信号
 	ctx, stop := signal.NotifyContext( //收到退出信号后，这个通道会被关闭，说明该开始关闭服务了
 		context.Background(),
 		os.Interrupt,    //通常对应终端里的 Ctrl+C
@@ -62,7 +73,7 @@ func run() error {
 	)
 	defer stop() //停止监听信号，释放相关资源
 
-	//6.在 goroutine 中启动 HTTP 服务
+	//9.在 goroutine 中启动 HTTP 服务
 	serverErr := make(chan error, 1)
 
 	go func() {
@@ -71,7 +82,7 @@ func run() error {
 		serverErr <- server.ListenAndServe()
 	}()
 
-	//7.主 goroutine 通过 select 等待服务异常退出，或者收到退出信号
+	//10.主 goroutine 通过 select 等待服务异常退出，或者收到退出信号
 	select {
 	case err := <-serverErr:
 		// HTTP 服务自行退出
@@ -85,7 +96,7 @@ func run() error {
 		log.Info("shutdown signal received")
 	}
 
-	//8.有序关闭 HTTP 服务
+	//11.有序关闭 HTTP 服务
 	//设置最多等待10s的关闭等待时间，Shutdown 会停止接受新请求，并等待正在处理的请求结束；超过期限就会返回错误
 	shutdownCtx, cancel := context.WithTimeout(
 		context.Background(),
@@ -102,7 +113,7 @@ func run() error {
 		}
 	}
 
-	//9.等待 HTTP服务退出
+	//12.等待 HTTP服务退出
 	err = <-serverErr
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("http server failed during shutdown:%w", err)

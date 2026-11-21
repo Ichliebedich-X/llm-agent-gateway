@@ -30,7 +30,7 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 // 比如：「这个服务现在是否具备接收业务请求的条件？」
 // 以后接入 MySQL、Redis、模型供应商等依赖后，就可以根据服务的实际就绪条件进行判断。
 func readyHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset-utf-8")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
 	response := map[string]string{
